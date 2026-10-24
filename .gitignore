@@ -1,0 +1,19 @@
+# Python bytecode and build products
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+
+# Run output: every run writes a time-stamped directory here.
+# Results are reproducible from config + code, so they are not committed.
+runs/
+
+# Editor and OS clutter
+.DS_Store
+.idea/
+.vscode/

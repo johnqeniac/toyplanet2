@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "toyplanet"
+version = "0.0.1"
+description = "Toy Planet II: a computational existence proof of closed-loop planetary climate control"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "tomli; python_version < '3.11'",   # TOML config reader; built in as tomllib from 3.11
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["toyplanet"]
