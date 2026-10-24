@@ -15,7 +15,7 @@ Dated design snapshots are kept in `docs/`.
 
 ## Status
 
-Phase 1 (seasonal energy-balance plant): not started.
+Phase 1 (seasonal energy-balance plant): in progress. Done: grid and transport operator (grid.py).
 
 ## Layout (planned)
 
