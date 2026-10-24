@@ -1,0 +1,24 @@
+# Toy Planet II: present-day-Earth-like planet, phase 1 plant only.
+# Any setting left out takes its default (see toyplanet/config.py, where every
+# setting is listed with its units and allowed range). A misspelled or unknown
+# setting stops the run with an error naming the closest valid one.
+
+[run]
+name = "earth_default"
+
+[grid]
+n = 36                      # equal-area bands; divisible by 4 puts an edge at +/-30 deg
+
+[orbit]
+solar_constant = 1361.0     # W m^-2
+obliquity_deg = 23.44
+eccentricity = 0.0167
+perihelion_solar_longitude_deg = 282.9
+
+[forcing]
+ghg = 0.0                   # W m^-2 relative to the reference state
+
+[time]
+dt_days = 1.0
+spinup_years = 30.0
+run_years = 50.0
