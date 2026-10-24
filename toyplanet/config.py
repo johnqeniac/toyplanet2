@@ -59,7 +59,9 @@ class RadiationConfig:
 @dataclass(frozen=True)
 class AlbedoConfig:
     ice: float = _p(0.62, "1", 0, 1, "albedo of ice-covered surface; provisional")
-    free: float = _p(0.30, "1", 0, 1, "albedo of ice-free surface; provisional")
+    free: float = _p(0.30, "1", 0, 1, "ice-free albedo, global-mean part; provisional")
+    free_p2: float = _p(0.0779, "1", -0.5, 0.5,
+                        "ice-free albedo P2(sin lat) coefficient: brighter at low sun angles (North & Coakley 1979)")
     t_freeze: float = _p(-10.0, "C", -40, 10, "centre of the ice transition; provisional")
     t_width: float = _p(2.0, "K", 0.1, 20, "width of the smooth (tanh) transition")
 

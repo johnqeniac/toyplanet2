@@ -15,7 +15,7 @@ Dated design snapshots are kept in `docs/`.
 
 ## Status
 
-Phase 1 (seasonal energy-balance plant): in progress. Done: grid and transport operator (grid.py); daily-mean insolation (insolation.py); validated configuration (config.py, configs/earth_default.toml); albedo and radiation (physics/).
+Phase 1 (seasonal energy-balance plant): in progress. Done: grid and transport operator (grid.py); daily-mean insolation (insolation.py); validated configuration (config.py, configs/earth_default.toml); albedo, radiation and ocean exchange (physics/); the assembled plant with semi-implicit time stepping and spin-up (plant.py). Remaining for phase 1: calibration against the validation targets.
 
 ## Layout (planned)
 

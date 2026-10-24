@@ -85,7 +85,11 @@ def solar_position(t_years, orbit: Orbit = Orbit()):
                           np.sqrt(1.0 + e) * np.cos(nu0 / 2.0))
     M0 = E0 - e * np.sin(E0)
 
-    M = M0 + 2.0 * np.pi * t
+    # Reduce to [0, 2 pi): the orbit repeats every year, and an unreduced mean
+    # anomaly grows without bound with t. After a century it is about 600 rad,
+    # where double precision resolves only about 1e-13, so the Kepler solver's
+    # convergence test could never be met.
+    M = np.mod(M0 + 2.0 * np.pi * t, 2.0 * np.pi)
     E = _solve_kepler(M, e)
     nu = 2.0 * np.arctan2(np.sqrt(1.0 + e) * np.sin(E / 2.0),
                           np.sqrt(1.0 - e) * np.cos(E / 2.0))

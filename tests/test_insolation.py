@@ -80,6 +80,16 @@ def test_kepler_distance_extremes():
     assert np.isclose(d2.min(), 1 / (1 + e) ** 2, rtol=1e-6)
 
 
+def test_insolation_repeats_every_year_far_from_t_zero():
+    """Runs last centuries. The orbit must repeat exactly each year, and the
+    Kepler solver must still converge at large t (a bug found during spin-up)."""
+    x = np.linspace(-0.95, 0.95, 7)[:, None]
+    t = np.linspace(0, 1, 50)
+    base = daily_insolation(x, t)
+    for years in (1, 37, 500, 10000):
+        assert np.allclose(daily_insolation(x, t + years), base, rtol=1e-9, atol=1e-9)
+
+
 def test_rejects_unbound_orbit():
     with pytest.raises(ValueError):
         Orbit(eccentricity=1.0)

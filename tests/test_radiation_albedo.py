@@ -8,8 +8,14 @@ from toyplanet.config import AlbedoConfig, RadiationConfig
 from toyplanet.physics.albedo import albedo, dalbedo_dT
 from toyplanet.physics.radiation import absorbed_shortwave, outgoing_longwave
 
-ALB = AlbedoConfig()
+ALB = AlbedoConfig(free_p2=0.0)     # latitude term off: these tests are about the T dependence
 RAD = RadiationConfig()
+
+
+def test_p2_term_brighter_at_poles():
+    cfg = AlbedoConfig()
+    eq, pole = albedo(30.0, cfg, 0.0), albedo(30.0, cfg, 1.0)
+    assert np.isclose(eq, cfg.free - cfg.free_p2 / 2) and np.isclose(pole, cfg.free + cfg.free_p2)
 
 
 def test_albedo_limits_and_midpoint():
