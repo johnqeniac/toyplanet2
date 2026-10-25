@@ -43,7 +43,7 @@ from scipy.sparse.linalg import factorized
 from toyplanet.grid import LatitudeGrid
 from toyplanet.insolation import band_mean
 from toyplanet.physics.albedo import albedo
-from toyplanet.physics.ocean import exchange_flux
+from toyplanet.geography import land_fraction
 from toyplanet.physics.radiation import absorbed_shortwave, outgoing_longwave
 
 DAYS_PER_YEAR = 365.2422
@@ -81,8 +81,14 @@ class Plant:
         self.steps_per_year = max(1, int(round(DAYS_PER_YEAR / cfg.time.dt_days)))
         self.dt = 1.0 / self.steps_per_year                    # years
         n = self.grid.n
-        self.C = np.full(n, cfg.ocean.c_mixed)                 # per band; land fraction comes later
-        self.C_d = np.full(n, cfg.ocean.c_deep)
+        # Each band is part land, part ocean, with one surface temperature.
+        # Its heat capacity is the area-weighted mix; only the ocean part
+        # exchanges heat with the deep ocean.
+        self.land = land_fraction(self.grid, cfg.surface.land_profile)
+        ocean = 1.0 - self.land
+        self.C = self.land * cfg.surface.c_land + ocean * cfg.ocean.c_mixed
+        self.gamma = ocean * cfg.ocean.gamma                   # W m^-2 K^-1, per band
+        self.C_d = np.maximum(ocean, 1e-6) * cfg.ocean.c_deep  # deep layer under the ocean part
         L = self.grid.diffusion_operator()
         M = identity(n, format="csc").multiply(self.C[:, None] / self.dt) - cfg.transport.diffusivity * L
         self._solve = factorized(M.tocsc())                    # factorize once
@@ -115,7 +121,7 @@ class Plant:
 
     def step(self, s: State, F_act=0.0) -> State:
         """Advance one time step. F_act: actuator forcing per band, W m^-2."""
-        exch = exchange_flux(s.T, s.T_d, self.cfg.ocean)
+        exch = self.gamma * (s.T - s.T_d)
         R = self.net_radiation(s.T, s.step, F_act) - exch
         T_new = self._solve(self.C / self.dt * s.T + R)
         T_d_new = s.T_d + self.dt * exch / self.C_d
@@ -125,15 +131,25 @@ class Plant:
         n = self.grid.n
         return State(np.full(n, T0), np.full(n, T0), 0)
 
-    def run_years(self, s: State, years: int, F_act=0.0):
+    def run_years(self, s: State, years: int, F_act=0.0, F_ext=None):
         """Step for a whole number of years. Returns the final state and a
-        per-step record: times (m,), T (m, n), T_d (m, n)."""
+        per-step record: times (m,), T (m, n), T_d (m, n).
+
+        F_act: constant actuator forcing (scalar or per band).
+        F_ext: optional prescribed forcing, one row per step, shape (m,) or
+               (m, n), e.g. from forcing.build_external (variability, volcanoes).
+        """
         steps = int(years) * self.steps_per_year
         times = np.empty(steps)
         Ts = np.empty((steps, self.grid.n))
         Tds = np.empty((steps, self.grid.n))
+        if F_ext is not None:
+            F_ext = np.asarray(F_ext, dtype=float)
+            if F_ext.shape[0] < steps:
+                raise ValueError(f"F_ext has {F_ext.shape[0]} rows; the run needs {steps}")
         for k in range(steps):
-            s = self.step(s, F_act)
+            F = F_act if F_ext is None else F_act + F_ext[k]
+            s = self.step(s, F)
             times[k], Ts[k], Tds[k] = self.time(s), s.T, s.T_d
         return s, times, Ts, Tds
 

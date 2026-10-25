@@ -64,7 +64,7 @@ def test_global_response_to_uniform_forcing_is_F_over_B_without_ice():
 
 
 def test_circular_orbit_gives_hemispherically_symmetric_climate():
-    p = make(orbit={"eccentricity": 0.0})
+    p = make(orbit={"eccentricity": 0.0}, surface={"land_profile": "aquaplanet"})
     _, _, T, _ = p.run_years(p.spin_up(), 1.0)
     ann = T.mean(axis=0)
     assert np.allclose(ann, ann[::-1], atol=0.02)

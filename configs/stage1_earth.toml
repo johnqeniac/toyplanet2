@@ -1,0 +1,15 @@
+# Toy Planet II: stage-1 experiments on an Earth-like planet.
+# Calibrated (phase 1-2): global mean 14.3 C, ice edges ~70 N / 71 S,
+# interannual variability of global-mean temperature ~0.1 K,
+# Pinatubo-like eruption (-3.5 W m^-2) gives 0.43 K peak cooling at ~22 months.
+
+[run]
+name = "stage1_earth"
+
+[surface]
+land_profile = "earth"      # approximate zonal land fractions (see toyplanet/geography.py)
+
+[variability]
+global_sigma = 1.4          # W m^-2; gives ~0.1 K std of annual global-mean temperature
+global_tau_days = 90.0
+seed = 1

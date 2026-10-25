@@ -57,7 +57,8 @@ class InsolationConfig:
 
 @dataclass(frozen=True)
 class RadiationConfig:
-    olr_a: float = _p(203.3, "W m^-2", 0, 400, "OLR at 0 C (Budyko A); provisional")
+    olr_a: float = _p(207.0, "W m^-2", 0, 400,
+                      "OLR at 0 C (Budyko A); seasonal calibration: global mean 14.3 C, ice edge 70 deg")
     olr_b: float = _p(2.09, "W m^-2 K^-1", 0.1, 5, "OLR slope (Budyko B), local feedback; provisional")
 
 
@@ -67,13 +68,21 @@ class AlbedoConfig:
     free: float = _p(0.319, "1", 0, 1, "ice-free albedo, global-mean part (1 - a0, North et al. 1981 eq. 18)")
     free_p2: float = _p(0.202, "1", -0.5, 0.5,
                         "ice-free albedo P2(sin lat) coefficient (-a2, North et al. 1981 eq. 18): brighter at low sun")
-    t_freeze: float = _p(-10.0, "C", -40, 10, "centre of the ice transition; provisional")
+    t_freeze: float = _p(-10.0, "C", -40, 10,
+                         "centre of the ice transition. An effective snow-and-ice threshold for a model with one "
+                         "surface temperature per band (North 1981), not the freezing point of seawater")
     t_width: float = _p(2.0, "K", 0.1, 20, "width of the smooth (tanh) transition")
 
 
 @dataclass(frozen=True)
 class TransportConfig:
     diffusivity: float = _p(0.649, "W m^-2 K^-1", 0, 10, "D in d/dx((1-x^2) D dT/dx); provisional")
+
+
+@dataclass(frozen=True)
+class SurfaceConfig:
+    land_profile: str = _p("earth", "", doc="'earth' (approximate zonal land fractions) or 'aquaplanet'")
+    c_land: float = _p(0.5, "W yr m^-2 K^-1", 0.01, 10, "land surface heat capacity (a few metres of water)")
 
 
 @dataclass(frozen=True)
@@ -86,6 +95,23 @@ class OceanConfig:
 @dataclass(frozen=True)
 class ForcingConfig:
     ghg: float = _p(0.0, "W m^-2", -20, 20, "greenhouse forcing relative to the reference state")
+
+
+@dataclass(frozen=True)
+class VariabilityConfig:
+    global_sigma: float = _p(0.0, "W m^-2", 0, 20, "std of planet-wide red-noise forcing (0 = off)")
+    global_tau_days: float = _p(90.0, "days", 1, 3650, "memory time of planet-wide noise")
+    band_sigma: float = _p(0.0, "W m^-2", 0, 50, "std of independent per-band red-noise forcing (0 = off)")
+    band_tau_days: float = _p(10.0, "days", 1, 3650, "memory time of per-band noise")
+    seed: int = _p(1, "", 0, 2**31 - 1, "random seed; recorded so every run can be reproduced")
+
+
+@dataclass(frozen=True)
+class VolcanicConfig:
+    peak: float = _p(0.0, "W m^-2", -50, 0, "peak global forcing of one eruption (negative; 0 = none)")
+    start_year: float = _p(5.0, "years", 0, 10000, "eruption time, years after the run starts")
+    rise_years: float = _p(0.5, "years", 0.01, 5, "time from eruption to peak forcing")
+    decay_years: float = _p(1.0, "years", 0.1, 10, "e-folding removal time of the aerosol")
 
 
 @dataclass(frozen=True)
@@ -111,8 +137,11 @@ class Config:
     radiation: RadiationConfig = field(default_factory=RadiationConfig)
     albedo: AlbedoConfig = field(default_factory=AlbedoConfig)
     transport: TransportConfig = field(default_factory=TransportConfig)
+    surface: SurfaceConfig = field(default_factory=SurfaceConfig)
     ocean: OceanConfig = field(default_factory=OceanConfig)
     forcing: ForcingConfig = field(default_factory=ForcingConfig)
+    variability: VariabilityConfig = field(default_factory=VariabilityConfig)
+    volcanic: VolcanicConfig = field(default_factory=VolcanicConfig)
     time: TimeConfig = field(default_factory=TimeConfig)
     run: RunConfig = field(default_factory=RunConfig)
 

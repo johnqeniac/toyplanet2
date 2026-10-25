@@ -44,7 +44,10 @@ def test_time_stepped_plant_finds_the_exact_ice_edge(frac):
     """Away from the polar cusp, where sensitivity to small differences diverges."""
     Q = frac * P.Q0
     cfg = from_dict({"grid": {"n": 90}, "insolation": {"seasonal": False},
-                     "orbit": {"solar_constant": 4 * Q}, "albedo": {"t_width": 0.3}})
+                     "orbit": {"solar_constant": 4 * Q}, "albedo": {"t_width": 0.3, "t_freeze": P.T_s, "ice": 1 - P.b0,
+                                           "free": 1 - P.a0, "free_p2": -P.a2},
+                                "radiation": {"olr_a": P.A, "olr_b": P.B},
+                                "transport": {"diffusivity": P.D}})
     p = Plant(cfg)
     s = p.spin_up(tol=1e-5)
     exact = brentq(lambda x: legendre_Q_of_xs(x) - Q, 0.6, 0.998)

@@ -26,7 +26,10 @@ def main(out="docs/figures/north_benchmark.png"):
     def plant(frac):
         return Plant(from_dict({"grid": {"n": 60}, "insolation": {"seasonal": False},
                                 "orbit": {"solar_constant": 4 * frac * P.Q0},
-                                "albedo": {"t_width": 0.3}}))
+                                "albedo": {"t_width": 0.3, "t_freeze": P.T_s, "ice": 1 - P.b0,
+                                           "free": 1 - P.a0, "free_p2": -P.a2},
+                                "radiation": {"olr_a": P.A, "olr_b": P.B},
+                                "transport": {"diffusivity": P.D}}))
 
     sweeps = {"down": np.round(np.arange(1.06, 0.84, -0.01), 3),
               "up": np.round(np.arange(0.86, 1.62, 0.04), 3)}
