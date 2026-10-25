@@ -305,14 +305,14 @@ tests/           one test file per module, plus end-to-end runs
 Stage-1 results come first (phases 2 to 5), then the full-control programme (phase 6), then 2-D (phase 7). Each phase ends at a gate that must pass before the next begins. Revised 2026-10-24 to put stage-1 objectives first.
 
 1. **Seasonal energy-balance plant.** N bands, implicit diffusion, smooth ice albedo, two-layer ocean, GHG forcing. *Built.*
-   - Gate met: energy budget closes to round-off; the linear planet matches its directly solved steady state; the North (1981) ice-edge benchmark is reproduced, including the snowball bifurcation and hysteresis. Remaining: one light seasonal calibration pass (mixed-layer response time, seasonal range, ice edge).
-2. **Stage-1 plant inputs.** Natural variability as red-noise forcing; prescribed volcanic forcing (single pulses and a historical record).
-   - Gate: the response to a Pinatubo-like pulse is comparable to the observed cooling and recovery.
+   - Gate met: energy budget closes to round-off; the linear planet matches its directly solved steady state; the North (1981) ice-edge benchmark is reproduced, including the snowball bifurcation and hysteresis. Seasonal calibration done: global mean 14.3 °C, ice edges 70°N and 71°S (A = 207 W/m², ice threshold −10 °C as an effective snow-and-ice threshold). Known limitation: one temperature per band gives about half Earth's mid-latitude seasonal range over land.
+2. **Stage-1 plant inputs.** Natural variability as red-noise forcing; prescribed volcanic forcing (single pulses and the largest historical eruptions); approximate Earth land fractions, so the response time reflects land as well as ocean. Built.
+   - Gate met: a Pinatubo-like pulse (−3.5 W/m²) gives 0.43 K peak cooling at about 22 months, against the observed \~0.5 K at \~18 months (Soden et al. 2002). The largest eruptions of the last 2,500 years (Samalas, Tambora, Laki, Huaynaputina; eVolv2k sulfur injections, forcing scaled from Pinatubo with a conservative 2/3-power law) all recover fully, with no change in the ice edge.
 3. **One SAI actuator, termination and dose response.** A single actuator with burden dynamics (aerosol lifetime).
    - Gate: departure from linearity at test-scale doses quantified; recovery time after termination reported.
 4. **Detectability, threshold distance and adversarial planets.** Time for a test of given strength to rise above natural variability; distance to the nearest threshold; claim tests constrained by the volcanic record.
    - Gate: a result card for each stage-1 claim.
-5. **Single-loop controller.** Integral control of global-mean temperature, with the ramp, under natural variability and sensor noise.
+5. **Distribution controller (first demonstration of the central claim).** Integral control of the temperature distribution: global mean, interhemispheric gradient and equator-to-pole gradient (the GLENS targets), using three or four injection latitudes, with the ramp, under natural variability and sensor noise. Brought forward so the central claim gets an early test rather than waiting for phase 6.
    - Gate: holds the target within tolerance; closed loop reduces error.
 6. **Full-control programme.** Multiple actuators and the B matrix, rank of G(0) and G(iω_yr), the multi-input controller and mismatch tests, water and clouds, the planet-family sweep and residual map.
    - Gate: the residual map, with each miss classified by cause.
