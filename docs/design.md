@@ -25,6 +25,28 @@ Toy Planet II is a computational existence proof: across a family of planets who
 
 This model is the computational backbone of §8 ("The existence proof") of *Adaptive Planetary Radiative Management, v2*. It is also a general test bench for claims about how intervention would work. Any claim is translated into the model as a planet variant (a change to the physics f) or an actuator property (a change to B), then run through the same experiments. The first such claim, which prompted this redesign, is Jan's: that a strong low-cloud feedback makes warming hard to reverse. It is an example, not the target.
 
+## Stage-1 objectives
+
+The first job of Toy Planet II is narrower than full climate control: to answer the claim that even a small, short SAI test could cause instantaneous, irreversible or catastrophic change. These results come first; the full-control programme follows.
+
+**What the claim requires.** For a small forcing to cause large, lasting change, the climate must have either a discontinuity (a small forcing gives a large response) or a threshold with hysteresis within reach of the test (crossing it is not undone by removing the forcing). Toy Planet II computes, for any planet in the family, the distance to the nearest threshold in W/m² along each actuator's direction.
+
+**First quantitative example.** In the North (1981) benchmark reproduced in phase 1, irreversible cooling (the snowball) requires lowering solar input by about 12%, roughly 40 W/m². Test-scale SAI forcing is of order 0.01 to 0.1 W/m², about 400 to 4,000 times smaller.
+
+**The volcanic-record constraint.** A model cannot prove that Earth has no nearby threshold; a critic can always say the mechanism is missing. The argument is therefore built the other way round: any adversarial planet proposed must also survive the historical volcanic forcing record (Pinatubo: about −3 to −4 W/m² for two years) without tipping. A planet with a threshold close enough for a test to cross would already have crossed it. The critic must then name a mechanism that tips under a deliberate 0.1 W/m² but not under 3 W/m² of volcanic forcing.
+
+| Stage-1 claim | Experiment | Run length |
+| --- | --- | --- |
+| Response is proportional at small dose | Response versus dose; departure from linearity | 1–10 yr |
+| Reversible | Switch injection on, then off; time to recover | 1–5 yr |
+| Far from thresholds | Distance to the nearest threshold along each actuator's direction | Equilibrium analysis |
+| Detectable and controllable | Ramp against natural variability; time to detect, ability to hold | 1–30 yr |
+| Robust to adversarial planets | Claim tests, each constrained by the volcanic record | 1–30 yr |
+
+**Scope.** These experiments answer the physical claims of catastrophe. They do not address governance, consent, precedent, or the effects of full-scale deployment, which no climate model can settle. Each result is reported as a one-page result card: the claim as stated, how it was encoded, the result with its figure, and its limits.
+
+**Run lengths** are 1 to 30 years. The deep ocean stays in the model because it sets the slow drift and the starting state; processes on centennial and longer timescales (ice sheets, carbon cycle) are out of scope.
+
 ## The three results
 
 The premise holds if three results hold, in increasing order of difficulty: reachability, output tracking, and robustness to unknown physics. Toy Planet II computes each one and reports where it fails.
@@ -111,7 +133,7 @@ C_d\,\frac{\partial T_d}{\partial t} = \gamma\,(T - T_d), \qquad h = c_p T + L\,
 
 **Numerics.** Diffusion is integrated implicitly (backward Euler or Crank–Nicolson), the rest explicitly, with a time step of about one day. The reason: explicit diffusion on a fine grid is only stable for steps shorter than roughly Δx²/2D, which would force tiny steps. Treating the stiff term implicitly removes that limit. A 100-year run at N = 36 should take seconds.
 
-**Known gap.** A 1-D moist EBM does not represent the fast precipitation response that makes shortwave and longwave forcing differ (Bala et al. 2008): global-mean precipitation is set by atmospheric radiative cooling, which the two forcing types change differently. Closing that gap needs a separate atmospheric energy budget per band. It is deferred to phase 4 and listed under open questions.
+**Known gap.** A 1-D moist EBM does not represent the fast precipitation response that makes shortwave and longwave forcing differ (Bala et al. 2008): global-mean precipitation is set by atmospheric radiative cooling, which the two forcing types change differently. Closing that gap needs a separate atmospheric energy budget per band. It is deferred to phase 6 and listed under open questions.
 
 ## Actuators and the B matrix
 
@@ -130,7 +152,7 @@ Each actuator is a column of B: the forcing pattern, in W/m² per band, produced
 I(\phi, \lambda, t) = \sum_k u_k(t)\, \psi_k(\phi, \lambda)
 ```
 
-where ψₖ is the forcing footprint of site k after stratospheric transport, and uₖ(t) is its injection rate, reset at each control step. The number and placement of sites are config parameters with no cap. Altitude and aerosol species can be added as further indices. In 1-D a site is a latitude; longitude enters in phase 6.
+where ψₖ is the forcing footprint of site k after stratospheric transport, and uₖ(t) is its injection rate, reset at each control step. The number and placement of sites are config parameters with no cap. Altitude and aerosol species can be added as further indices. In 1-D a site is a latitude; longitude enters in phase 7.
 
 **Aircraft tracks.** A track is a line source: injection along a flight path over a time window. Its footprint is the point-source kernel integrated along the path, so any track is a sum of basis contributions. In 1-D an east–west track is one latitude and a north–south track spans several bands. Tracks shorter than the plume's spreading scale behave as points, which sets the lower length limit.
 
@@ -185,7 +207,7 @@ Lifetimes quoted are approximate published values, not yet checked against sourc
 
 **Each uₖ is non-negative.** Mixed sign comes from pairing a cooling and a warming actuator in the same place, which is how the physical system works.
 
-**B is periodic in time.** A shortwave column is proportional to Q(φ, t)\[1 − α\], so it varies through the year and vanishes in polar night. The seasonal rank test in result 2 is therefore a question about a periodic system. Two ways to answer it: harmonic transfer functions (the frequency-domain method for periodic systems), or brute force, by simulating a seasonal target and checking the residual. Phase 2 does both and compares them.
+**B is periodic in time.** A shortwave column is proportional to Q(φ, t)\[1 − α\], so it varies through the year and vanishes in polar night. The seasonal rank test in result 2 is therefore a question about a periodic system. Two ways to answer it: harmonic transfer functions (the frequency-domain method for periodic systems), or brute force, by simulating a seasonal target and checking the residual. Phase 6 does both and compares them.
 
 **Comparison point.** GLENS used four SAI injection latitudes (30°N, 15°N, 15°S, 30°S) against three targets. That configuration is one row of the portfolio sweep, so Toy Planet II can reproduce it and then show what changes as actuators are added.
 
@@ -217,7 +239,7 @@ where Ĝ₀⁺ is the pseudo-inverse of the estimated gain matrix and Π project
 
 The decisive experiment designs the controller on one planet and runs it unchanged on others. Success across a broad family shifts the burden to the skeptic: show why Earth is the member on which feedback control fails.
 
-**Parameters swept** (ranges to be set in phase 5; the first two rows are standard published values as a starting point):
+**Parameters swept** (ranges to be set in phase 6; the first two rows are standard published values as a starting point):
 
 | Parameter | Symbol | Starting range |
 | --- | --- | --- |
@@ -240,7 +262,7 @@ The decisive experiment designs the controller on one planet and runs it unchang
 5. **Ramp.** Authority starts small and grows while Ĝ₀ is re-identified. Tests the v2 framework's development sequence.
 6. **Kernel sweep (the degrees-of-freedom question).** Vary the stratospheric spreading width and aerosol lifetime. For each setting, add injection sites one at a time and record the effective rank of B (the number of singular values above the noise floor). A narrow kernel lets each site add an independent forcing pattern, which is Greg's argument that injection outpaces dispersion. A broad kernel makes extra sites redundant, adding no rank, which is the low-DOF result of the MacMartin lineage. The curve shows which regime holds for given transport parameters.
 
-**Success criterion (proposed):** band annual-mean temperature within 0.1 K of target after the transient, and P − E within a tolerance to be set in phase 4. Any miss is classified using the residual table in the three-results section.
+**Success criterion (proposed):** band annual-mean temperature within 0.1 K of target after the transient, and P − E within a tolerance to be set in phase 6. Any miss is classified using the residual table in the three-results section.
 
 ## Software architecture
 
@@ -280,20 +302,22 @@ tests/           one test file per module, plus end-to-end runs
 
 ## Phase plan
 
-Five phases in 1-D answer all three results; phase 6 moves to latitude–longitude for regional targets. Each phase ends at a gate that must pass before the next begins.
+Stage-1 results come first (phases 2 to 5), then the full-control programme (phase 6), then 2-D (phase 7). Each phase ends at a gate that must pass before the next begins. Revised 2026-10-24 to put stage-1 objectives first.
 
-1. **Seasonal energy-balance plant.** N bands, implicit diffusion, smooth ice albedo, two-layer ocean, GHG forcing.
-   - Gate: reproduces textbook results (ice-edge solutions of North-type EBMs, the seasonal cycle of zonal temperature), closes the energy budget to round-off, and the two-box case shows rank 2.
-2. **Actuators and linear analysis.** B matrix, numerical linearization, rank of G(0) and G(iω_yr).
-   - Gate: rank census for at least three portfolios (GLENS-like, shortwave-only, shortwave plus longwave), harmonic and brute-force answers agreeing.
-3. **Closed loop.** Integral controller with allocator, anti-windup, identification, sensor noise.
-   - Gate: holds band-temperature targets on the nominal planet; the predicted mismatch boundary matches simulation within tolerance.
-4. **Water and clouds.** Moist static energy transport, P − E output, low-cloud feedback including the bistable form, the atmospheric energy budget for the precipitation gap.
-   - Gate: temperature and P − E tracked together, or the rank deficiency that prevents it identified; first claim test reported.
-5. **Planet-family sweep.** All experiments across the parameter table.
-   - Gate: the residual map, with each miss classified by cause. This is the 1-D deliverable.
-6. **2-D (latitude–longitude).** Separates land from ocean, places MCB regionally, and allows regional precipitation targets such as monsoons.
-   - Gate: phase 2 to 5 results recomputed on the 2-D grid; the change in rank with longitude resolution reported.
+1. **Seasonal energy-balance plant.** N bands, implicit diffusion, smooth ice albedo, two-layer ocean, GHG forcing. *Built.*
+   - Gate met: energy budget closes to round-off; the linear planet matches its directly solved steady state; the North (1981) ice-edge benchmark is reproduced, including the snowball bifurcation and hysteresis. Remaining: one light seasonal calibration pass (mixed-layer response time, seasonal range, ice edge).
+2. **Stage-1 plant inputs.** Natural variability as red-noise forcing; prescribed volcanic forcing (single pulses and a historical record).
+   - Gate: the response to a Pinatubo-like pulse is comparable to the observed cooling and recovery.
+3. **One SAI actuator, termination and dose response.** A single actuator with burden dynamics (aerosol lifetime).
+   - Gate: departure from linearity at test-scale doses quantified; recovery time after termination reported.
+4. **Detectability, threshold distance and adversarial planets.** Time for a test of given strength to rise above natural variability; distance to the nearest threshold; claim tests constrained by the volcanic record.
+   - Gate: a result card for each stage-1 claim.
+5. **Single-loop controller.** Integral control of global-mean temperature, with the ramp, under natural variability and sensor noise.
+   - Gate: holds the target within tolerance; closed loop reduces error.
+6. **Full-control programme.** Multiple actuators and the B matrix, rank of G(0) and G(iω_yr), the multi-input controller and mismatch tests, water and clouds, the planet-family sweep and residual map.
+   - Gate: the residual map, with each miss classified by cause.
+7. **2-D (latitude–longitude).** Separates land from ocean, places MCB regionally, and allows regional precipitation targets such as monsoons.
+   - Gate: phase 6 results recomputed on the 2-D grid; the change in rank with longitude resolution reported.
 
 **Why 2-D comes later rather than never.** A zonal mean cannot represent a regional target such as a monsoon or a land–sea contrast, so the regional version of the premise needs 2-D. The physics and controller code carry over unchanged if the grid is an interface rather than an assumption; only the transport operator and the grid object change. Compute is not the constraint: a 2-D energy-balance model on a 64 × 32 grid still runs in minutes on a laptop. The constraint is validation effort.
 
@@ -308,11 +332,11 @@ Toy Planet I (June 2025, built with ChatGPT) had sound two-layer physics but cou
 | A script imported as a module ran its own simulation | No side effects on import; physics as pure functions |
 | Config key `carbon_scenario` silently ignored; parameters hard-coded twice | Config validated against a schema; unknown or unused keys are errors |
 | Forcing switched on as a 2.45 W/m² step at the first year | Every run starts from a spun-up equilibrium |
-| One global temperature, one actuator | Spatial bands and a multi-column B from phase 1 |
+| One global temperature, one actuator | Spatial bands from phase 1; a multi-column B in phase 6 |
 
 ## Open questions
 
-- [ ] Precipitation gap: add a per-band atmospheric energy budget in phase 4, or accept the 1-D moist EBM's limit and defer to 2-D?
+- [ ] Precipitation gap: add a per-band atmospheric energy budget in phase 6, or accept the 1-D moist EBM's limit and defer to 2-D?
 - [ ] Seasonal rank: is the harmonic-transfer-function method worth implementing, or is brute-force simulation sufficient?
 - [ ] For each claim tested, what functional form and strength does it assume? First up: Jan's low-cloud feedback.
 - [ ] Success tolerances for P − E and for seasonal (not just annual-mean) targets.
