@@ -19,7 +19,7 @@ Units are stated in each field's metadata. Temperatures are in degrees
 Celsius, the convention of the Budyko longwave formula A + B*T.
 
 Values marked "provisional" are starting points from the energy-balance-model
-literature (North & Coakley 1979; Held et al. 2010) and will be set during
+literature (North, Cahalan & Coakley 1981; Held et al. 2010) and will be set during
 phase 1 validation.
 """
 
@@ -51,6 +51,11 @@ class GridConfig:
 
 
 @dataclass(frozen=True)
+class InsolationConfig:
+    seasonal: bool = _p(True, "", doc="false: every day gets the annual-mean insolation (benchmarks)")
+
+
+@dataclass(frozen=True)
 class RadiationConfig:
     olr_a: float = _p(203.3, "W m^-2", 0, 400, "OLR at 0 C (Budyko A); provisional")
     olr_b: float = _p(2.09, "W m^-2 K^-1", 0.1, 5, "OLR slope (Budyko B), local feedback; provisional")
@@ -59,9 +64,9 @@ class RadiationConfig:
 @dataclass(frozen=True)
 class AlbedoConfig:
     ice: float = _p(0.62, "1", 0, 1, "albedo of ice-covered surface; provisional")
-    free: float = _p(0.30, "1", 0, 1, "ice-free albedo, global-mean part; provisional")
-    free_p2: float = _p(0.0779, "1", -0.5, 0.5,
-                        "ice-free albedo P2(sin lat) coefficient: brighter at low sun angles (North & Coakley 1979)")
+    free: float = _p(0.319, "1", 0, 1, "ice-free albedo, global-mean part (1 - a0, North et al. 1981 eq. 18)")
+    free_p2: float = _p(0.202, "1", -0.5, 0.5,
+                        "ice-free albedo P2(sin lat) coefficient (-a2, North et al. 1981 eq. 18): brighter at low sun")
     t_freeze: float = _p(-10.0, "C", -40, 10, "centre of the ice transition; provisional")
     t_width: float = _p(2.0, "K", 0.1, 20, "width of the smooth (tanh) transition")
 
@@ -102,6 +107,7 @@ class Config:
 
     grid: GridConfig = field(default_factory=GridConfig)
     orbit: Orbit = field(default_factory=Orbit)
+    insolation: InsolationConfig = field(default_factory=InsolationConfig)
     radiation: RadiationConfig = field(default_factory=RadiationConfig)
     albedo: AlbedoConfig = field(default_factory=AlbedoConfig)
     transport: TransportConfig = field(default_factory=TransportConfig)

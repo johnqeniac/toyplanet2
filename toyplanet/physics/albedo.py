@@ -10,7 +10,7 @@ The P2 term makes ice-free surfaces reflect more where the sun is low (high
 latitudes) than where it is high (tropics), mainly through clouds and the
 reflectivity of water at grazing angles. With a2 > 0 the albedo rises from
 alpha_free - a2/2 at the equator to alpha_free + a2 at the poles. This is the
-form used by North & Coakley (1979).
+form fitted to observations by North, Cahalan & Coakley (1981, eq. 18).
 
 Why a tanh and not a step: a step makes albedo jump when a band crosses T_f,
 so the absorbed sunlight jumps, the temperature is pushed back across, and the

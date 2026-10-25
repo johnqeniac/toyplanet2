@@ -88,6 +88,8 @@ class Plant:
         self._solve = factorized(M.tocsc())                    # factorize once
         t_year = np.arange(self.steps_per_year) * self.dt
         self._Q = band_mean(self.grid, t_year, cfg.orbit).T.copy()   # (steps_per_year, n)
+        if not cfg.insolation.seasonal:          # benchmark mode: annual mean every day
+            self._Q[:] = self._Q.mean(axis=0)
 
     # -- the physics, as fluxes in W m^-2 ------------------------------------
 
