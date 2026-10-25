@@ -207,6 +207,16 @@ Lifetimes quoted are approximate published values, not yet checked against sourc
 
 **Each uₖ is non-negative.** Mixed sign comes from pairing a cooling and a warming actuator in the same place, which is how the physical system works.
 
+**Operating point and headroom.** A driver run around a nonzero operating point u₀ can move both ways: reducing it below u₀ acts as local warming relative to its baseline. The one-sided constraint uₖ ≥ 0 becomes a two-sided range,
+
+```math
+-u_{0,k} \le \Delta u_k \le u_{\max,k} - u_{0,k}
+```
+
+so the warming authority at a site equals the baseline cooling already applied there. In a warming world SAI's baseline job (offsetting greenhouse forcing) supplies this headroom; deliberate over-cooling adds margin where more is needed, at the cost of more aerosol aloft (side effects, larger termination effect). The minimum headroom needed to reject a disturbance of given size at each location is a computed output.
+
+**Roles of the drivers.** SAI is the primary driver: large, slowly varying cooling. MCB and cirrus cloud thinning are local, fast drivers that compensate the second-order effects of SAI (regional temperature and precipitation residuals) and provide fast two-way correction, because their forcing follows their setting within hours to days.
+
 **B is periodic in time.** A shortwave column is proportional to Q(φ, t)\[1 − α\], so it varies through the year and vanishes in polar night. The seasonal rank test in result 2 is therefore a question about a periodic system. Two ways to answer it: harmonic transfer functions (the frequency-domain method for periodic systems), or brute force, by simulating a seasonal target and checking the residual. Phase 6 does both and compares them.
 
 **Comparison point.** GLENS used four SAI injection latitudes (30°N, 15°N, 15°S, 30°S) against three targets. That configuration is one row of the portfolio sweep, so Toy Planet II can reproduce it and then show what changes as actuators are added.
@@ -228,6 +238,10 @@ where Ĝ₀⁺ is the pseudo-inverse of the estimated gain matrix and Π project
 **Saturation.** Integration pauses on any channel held at its bound (anti-windup), so the controller responds at once when the bound releases. Toy Planet I lacked this.
 
 **Up/down asymmetry.** Stratospheric cooling cannot be withdrawn faster than its removal lifetime. The controller therefore carries a predictive term that limits overshoot in cooling, and routes fast corrections, in either direction, to the fast tropospheric actuators. Runs log how often each injector sits at zero and how often the decay limit binds.
+
+**Loop speed and overshoot.** Overshoot is set by the delay in the loop relative to the controller's gain. Faster measurement and more frequent updates shorten part of that delay and allow firmer control, but once they are short the actuator's own lag dominates: for SAI, weeks to months for an increase to take effect and about a year for a decrease to work through. Fine-scale, fast correction therefore cannot come from SAI however fast the feedback. A second limit is noise: a loop that responds too quickly reacts to weather rather than to signal, so each actuator has a best loop speed, which the model computes.
+
+**Mid-ranging structure.** The standard process-control arrangement for one fast actuator with limited range and one slow actuator with large range. The fast loop (MCB, CCT) responds to any error at once. The slow loop (SAI) watches how far the fast drivers have moved from the middle of their range and gradually takes over the persistent part of the correction, returning them to mid-range and restoring their two-way headroom. Result: fast fine-scale correction, small SAI overshoot, and fast drivers that always retain authority. Phase 5 compares three arrangements against the same disturbance: SAI alone with slow gains, SAI alone with aggressive gains, and SAI with mid-ranging fast loops; reporting overshoot, settling time and aerosol used.
 
 **Identification.** Ĝ₀ is estimated from small actuator perturbations and the measured response, the computational version of the scaling ramp. It can be refreshed during a run.
 
@@ -263,6 +277,28 @@ The decisive experiment designs the controller on one planet and runs it unchang
 6. **Kernel sweep (the degrees-of-freedom question).** Vary the stratospheric spreading width and aerosol lifetime. For each setting, add injection sites one at a time and record the effective rank of B (the number of singular values above the noise floor). A narrow kernel lets each site add an independent forcing pattern, which is Greg's argument that injection outpaces dispersion. A broad kernel makes extra sites redundant, adding no rank, which is the low-DOF result of the MacMartin lineage. The curve shows which regime holds for given transport parameters.
 
 **Success criterion (proposed):** band annual-mean temperature within 0.1 K of target after the transient, and P − E within a tolerance to be set in phase 6. Any miss is classified using the residual table in the three-results section.
+
+### Three-world comparison
+
+This experiment answers the claim that controlled intervention would cause unpredictable side effects, by asking: compared with what? Three runs of the same planet with the same natural-variability seeds:
+
+1. **Reference:** no anthropogenic forcing; defines the natural mean state and fluctuation spectrum.
+2. **GHG only:** rising greenhouse forcing, no intervention.
+3. **GHG plus control:** the same forcing, with the controller holding its targets.
+
+**Measure.** For each output (band temperature, P − E, ITCZ latitude, ice edge), the shift from the reference divided by its natural interannual standard deviation. The headline compares world 3 with world 2, reported per region, not only as global averages: the number of regions improved and the number made worse (the winners-and-losers question), and rates of change as well as levels.
+
+**Variability under control.** Feedback cannot reduce variability at every timescale. The Bode sensitivity integral requires that, for a stable loop, reduced response to slow disturbances is paid for by some amplification near the loop's response speed. The controlled world therefore has less slow drift and slightly more variability in a band near the controller's response time. The deliverable is to show that amplification is small and falls where natural variability is weak.
+
+| Comparison | 1-D (phases 5–6) | 2-D (phase 7) | Needs a coupled GCM |
+| --- | --- | --- | --- |
+| Band temperatures, gradients, ice edges | Yes | Yes |  |
+| Zonal-mean P − E and ITCZ latitude | Yes (phase 6) | Yes |  |
+| Effect of the controller on variability | Yes | Yes |  |
+| Regional patterns by longitude, monsoons | No | Yes |  |
+| How GHGs change modes of variability (ENSO, monsoon rhythm) | No | No | Yes |
+
+Toy Planet's natural variability is imposed, not generated by dynamics, in 2-D as well as 1-D. Variability changes projected by coupled GCMs can be imported as prescribed disturbances, to test whether the controller holds its targets against them.
 
 ## Software architecture
 
@@ -312,9 +348,9 @@ Stage-1 results come first (phases 2 to 5), then the full-control programme (pha
    - Gate: departure from linearity at test-scale doses quantified; recovery time after termination reported.
 4. **Detectability, threshold distance and adversarial planets.** Time for a test of given strength to rise above natural variability; distance to the nearest threshold; claim tests constrained by the volcanic record.
    - Gate: a result card for each stage-1 claim.
-5. **Distribution controller (first demonstration of the central claim).** Integral control of the temperature distribution: global mean, interhemispheric gradient and equator-to-pole gradient (the GLENS targets), using three or four injection latitudes, with the ramp, under natural variability and sensor noise. Brought forward so the central claim gets an early test rather than waiting for phase 6.
+5. **Distribution controller (first demonstration of the central claim).** Integral control of the temperature distribution: global mean, interhemispheric gradient and equator-to-pole gradient (the GLENS targets), using three or four injection latitudes, with the ramp, under natural variability and sensor noise. Brought forward so the central claim gets an early test rather than waiting for phase 6. Includes the mid-ranging comparison and the temperature version of the three-world comparison.
    - Gate: holds the target within tolerance; closed loop reduces error.
-6. **Full-control programme.** Multiple actuators and the B matrix, rank of G(0) and G(iω_yr), the multi-input controller and mismatch tests, water and clouds, the planet-family sweep and residual map.
+6. **Full-control programme.** Multiple actuators and the B matrix, rank of G(0) and G(iω_yr), the multi-input controller and mismatch tests, water and clouds, the planet-family sweep and residual map, and the precipitation and ITCZ version of the three-world comparison.
    - Gate: the residual map, with each miss classified by cause.
 7. **2-D (latitude–longitude).** Separates land from ocean, places MCB regionally, and allows regional precipitation targets such as monsoons.
    - Gate: phase 6 results recomputed on the 2-D grid; the change in rank with longitude resolution reported.
