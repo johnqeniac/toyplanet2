@@ -115,6 +115,16 @@ class VolcanicConfig:
 
 
 @dataclass(frozen=True)
+class SAIConfig:
+    sites_deg: tuple = _p((0.0,), "deg", -90, 90, "injection latitudes, one actuator channel each")
+    spread_deg: float = _p(30.0, "deg", 1, 180, "latitude width (std) of each site's aerosol footprint")
+    tau_life_years: float = _p(1.0, "years", 0.05, 10, "aerosol removal e-folding time")
+    tau_conv_days: float = _p(30.0, "days", 0, 365, "SO2-to-sulfate conversion time (0 = direct injection)")
+    forcing_per_tg: float = _p(0.39, "W m^-2 per Tg S", 0, 5,
+                               "global-mean cooling per Tg S of burden; Pinatubo-scaled (3.5 W m^-2 / 9 Tg S)")
+
+
+@dataclass(frozen=True)
 class TimeConfig:
     dt_days: float = _p(1.0, "days", 0.01, 30, "time step")
     spinup_years: float = _p(30.0, "years", 0, 10000, "spin-up to equilibrium before the run proper")
@@ -142,6 +152,7 @@ class Config:
     forcing: ForcingConfig = field(default_factory=ForcingConfig)
     variability: VariabilityConfig = field(default_factory=VariabilityConfig)
     volcanic: VolcanicConfig = field(default_factory=VolcanicConfig)
+    sai: SAIConfig = field(default_factory=SAIConfig)
     time: TimeConfig = field(default_factory=TimeConfig)
     run: RunConfig = field(default_factory=RunConfig)
 
@@ -203,6 +214,17 @@ def _build(cls, data, where, problems):
 
 
 def _check_scalar(value, kind, meta, label, problems):
+    if kind is tuple:                  # a list of numbers, e.g. injection latitudes
+        if not isinstance(value, (list, tuple)) or not all(
+                isinstance(v, (int, float)) and not isinstance(v, bool) for v in value):
+            problems.append(f"{label}: expected a list of numbers, got {value!r}")
+            return None
+        lo, hi, units = meta.get("min"), meta.get("max"), meta.get("units", "")
+        bad = [v for v in value if (lo is not None and v < lo) or (hi is not None and v > hi)]
+        if bad:
+            problems.append(f"{label}: {bad} {units} outside the allowed range [{lo}, {hi}]")
+            return None
+        return tuple(float(v) for v in value)
     # bool is a subclass of int in Python, so 'true' would otherwise pass as 1.
     if isinstance(value, bool) and kind is not bool:
         problems.append(f"{label}: expected {kind.__name__}, got boolean {value}")
@@ -239,7 +261,14 @@ def to_toml(cfg: Config) -> str:
         lines.append(f"[{section.name}]")
         for f in dataclasses.fields(sub):
             v = getattr(sub, f.name)
-            text = f'"{v}"' if isinstance(v, str) else repr(v).lower() if isinstance(v, bool) else repr(v)
+            if isinstance(v, str):
+                text = f'"{v}"'
+            elif isinstance(v, bool):
+                text = repr(v).lower()
+            elif isinstance(v, tuple):
+                text = "[" + ", ".join(repr(e) for e in v) + "]"
+            else:
+                text = repr(v)
             units = f.metadata.get("units", "")
             lines.append(f"{f.name} = {text}" + (f"    # {units}" if units else ""))
         lines.append("")

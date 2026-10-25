@@ -43,6 +43,7 @@ from scipy.sparse.linalg import factorized
 from toyplanet.grid import LatitudeGrid
 from toyplanet.insolation import band_mean
 from toyplanet.physics.albedo import albedo
+from toyplanet.actuators import SAI
 from toyplanet.geography import land_fraction
 from toyplanet.physics.radiation import absorbed_shortwave, outgoing_longwave
 
@@ -54,6 +55,8 @@ class State:
     T: np.ndarray       # surface temperature per band, deg C
     T_d: np.ndarray     # deep-ocean temperature per band, deg C
     step: int           # steps taken since the vernal equinox of year 0
+    s_conv: np.ndarray | None = None    # SAI conversion stage per site, Tg S / yr
+    burden: np.ndarray | None = None    # SAI aerosol burden per site, Tg S
 
 
 class Plant:
@@ -96,6 +99,7 @@ class Plant:
         self._Q = band_mean(self.grid, t_year, cfg.orbit).T.copy()   # (steps_per_year, n)
         if not cfg.insolation.seasonal:          # benchmark mode: annual mean every day
             self._Q[:] = self._Q.mean(axis=0)
+        self.sai = SAI(cfg.sai, self.grid, self._Q)
 
     # -- the physics, as fluxes in W m^-2 ------------------------------------
 
@@ -119,25 +123,42 @@ class Plant:
 
     # -- time stepping --------------------------------------------------------
 
-    def step(self, s: State, F_act=0.0) -> State:
-        """Advance one time step. F_act: actuator forcing per band, W m^-2."""
+    def sai_forcing(self, s: State) -> np.ndarray:
+        """Forcing per band from the current aerosol burden, W m^-2."""
+        return self.sai.forcing(self._burden(s), s.step)
+
+    def _burden(self, s: State) -> np.ndarray:
+        return np.zeros(self.sai.k) if s.burden is None else s.burden
+
+    def step(self, s: State, F_act=0.0, u_sai=0.0) -> State:
+        """Advance one time step.
+
+        F_act: prescribed extra forcing per band, W m^-2.
+        u_sai: SAI injection rate per site, Tg S per year (never negative).
+        """
+        burden = self._burden(s)
+        s_conv = np.zeros(self.sai.k) if s.s_conv is None else s.s_conv
+        F = F_act + self.sai.forcing(burden, s.step)
         exch = self.gamma * (s.T - s.T_d)
-        R = self.net_radiation(s.T, s.step, F_act) - exch
+        R = self.net_radiation(s.T, s.step, F) - exch
         T_new = self._solve(self.C / self.dt * s.T + R)
         T_d_new = s.T_d + self.dt * exch / self.C_d
-        return State(T_new, T_d_new, s.step + 1)
+        s_new, m_new = self.sai.advance(s_conv, burden, u_sai, self.dt)
+        return State(T_new, T_d_new, s.step + 1, s_new, m_new)
 
     def initial_state(self, T0: float = 15.0) -> State:
-        n = self.grid.n
-        return State(np.full(n, T0), np.full(n, T0), 0)
+        n, k = self.grid.n, self.sai.k
+        return State(np.full(n, T0), np.full(n, T0), 0, np.zeros(k), np.zeros(k))
 
-    def run_years(self, s: State, years: int, F_act=0.0, F_ext=None):
+    def run_years(self, s: State, years: int, F_act=0.0, F_ext=None, u_sai=None):
         """Step for a whole number of years. Returns the final state and a
         per-step record: times (m,), T (m, n), T_d (m, n).
 
         F_act: constant actuator forcing (scalar or per band).
         F_ext: optional prescribed forcing, one row per step, shape (m,) or
                (m, n), e.g. from forcing.build_external (variability, volcanoes).
+        u_sai: optional SAI injection schedule, Tg S / yr: constant per site
+               (shape (k,)) or one row per step (shape (m, k)).
         """
         steps = int(years) * self.steps_per_year
         times = np.empty(steps)
@@ -147,9 +168,12 @@ class Plant:
             F_ext = np.asarray(F_ext, dtype=float)
             if F_ext.shape[0] < steps:
                 raise ValueError(f"F_ext has {F_ext.shape[0]} rows; the run needs {steps}")
+        u_sched = None if u_sai is None else np.asarray(u_sai, dtype=float)
+        per_step = u_sched is not None and u_sched.ndim == 2
         for k in range(steps):
             F = F_act if F_ext is None else F_act + F_ext[k]
-            s = self.step(s, F)
+            u = 0.0 if u_sched is None else (u_sched[k] if per_step else u_sched)
+            s = self.step(s, F, u)
             times[k], Ts[k], Tds[k] = self.time(s), s.T, s.T_d
         return s, times, Ts, Tds
 
@@ -175,7 +199,7 @@ class Plant:
         for _ in range(max_cycles):
             s, _, Ts, Tds = self.run_years(s, years_per_cycle)
             shift = Ts[last].mean(axis=0) - Tds[last].mean(axis=0)
-            s = State(s.T, s.T_d + shift, s.step)
+            s = State(s.T, s.T_d + shift, s.step, s.s_conv, s.burden)
             change = np.abs(shift).max()
             if change < tol:
                 return s

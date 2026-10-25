@@ -19,6 +19,8 @@ Phase 1 (seasonal energy-balance plant): in progress. Done: grid and transport o
 
 Phase 2 (stage-1 inputs): natural variability and volcanic pulses done; eruption gate passed (0.43 K peak cooling at ~22 months vs observed ~0.5 K at ~18 months; scripts/pinatubo_gate.py). Historical eruptions (Samalas, Tambora, Laki, Huaynaputina, Pinatubo; eVolv2k sulfur injections, forcing scaled from Pinatubo with a conservative 2/3-power law) all recover fully on the calibrated planet. Phase 2 complete.
 
+Phase 3 (one SAI actuator): burden dynamics (SO2 conversion, aerosol lifetime), Pinatubo-scaled forcing, injection sites as a config list. Dose response proportional within 0.8% over 300x in dose (within 0.1% at test scale); test-scale termination reverses fully with warming rate 0.008 K/yr; deployment-scale abrupt stop gives 0.17 K/yr (rate ~ masked cooling / ramp-down time). scripts/phase3_dose_termination.py. Phase 3 complete.
+
 ## Layout (planned)
 
 ```
