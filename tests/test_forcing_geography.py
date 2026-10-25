@@ -67,3 +67,13 @@ def test_land_makes_the_eruption_response_faster_and_larger():
         peaks[profile] = (d.min(), d.argmin())
     assert peaks["earth"][0] < peaks["aquaplanet"][0]      # more cooling
     assert peaks["earth"][1] < peaks["aquaplanet"][1]      # earlier peak
+
+
+def test_eruption_forcing_scaling():
+    from toyplanet.forcing import HISTORICAL_ERUPTIONS, peak_forcing
+    assert np.isclose(peak_forcing(9.0, "low"), -3.5) and np.isclose(peak_forcing(9.0, "high"), -3.5)
+    for name, (_, sulfur) in HISTORICAL_ERUPTIONS.items():
+        lo, hi = peak_forcing(sulfur, "low"), peak_forcing(sulfur, "high")
+        assert hi <= lo <= 0                                      # high estimate is the larger cooling
+    # sublinear: doubling the sulfur less than doubles the low-estimate forcing
+    assert abs(peak_forcing(18.0)) < 2 * abs(peak_forcing(9.0))

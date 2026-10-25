@@ -61,3 +61,45 @@ def build_external(cfg, n_steps: int, dt_years: float, n_bands: int) -> np.ndarr
         F = F + volcanic_pulse(n_steps, dt_years, vol.start_year, vol.peak,
                                vol.rise_years, vol.decay_years)[:, None]
     return F
+
+
+# --------------------------------------------------------------------------
+# Historical eruptions
+# --------------------------------------------------------------------------
+# Stratospheric sulfur injections (Tg S) from eVolv2k, Toohey & Sigl (2017),
+# Earth Syst. Sci. Data 9, 809, Table 2; Pinatubo from the same paper (9 +/- 2 Tg S).
+HISTORICAL_ERUPTIONS = {
+    # name: (year CE, sulfur injection Tg S)
+    "Samalas":     (1257, 59.4),
+    "Tambora":     (1815, 28.1),
+    "Laki":        (1783, 20.8),   # high-latitude, partly tropospheric: shorter-lived than a tropical eruption
+    "Huaynaputina": (1600, 19.0),
+    "Pinatubo":    (1991, 9.0),
+}
+
+PINATUBO_SULFUR = 9.0      # Tg S
+PINATUBO_FORCING = -3.5    # W m^-2, middle of the commonly cited -3 to -4 range (to be checked)
+TAMBORA_SULFUR = 28.1      # Tg S; eVolv2k's aerosol model switches to a 2/3 power law near this size
+
+
+def peak_forcing(sulfur_tg: float, estimate: str = "low") -> float:
+    """Peak global forcing (W m^-2) for a sulfur injection, scaled from Pinatubo.
+
+    Larger eruptions make larger particles, which reflect less per kilogram,
+    so forcing grows more slowly than the injection. Two estimates bracket it:
+
+      low:  F = F_pin (S / S_pin)^(2/3)                   sublinear throughout
+      high: linear up to Tambora's size, then (S / S_Tambora)^(2/3) beyond
+
+    The volcanic-record constraint uses the LOW estimate: it claims only that
+    the planet survived a kick of at least this size.
+    """
+    r = sulfur_tg / PINATUBO_SULFUR
+    if estimate == "low":
+        return PINATUBO_FORCING * r ** (2.0 / 3.0)
+    if estimate == "high":
+        if sulfur_tg <= TAMBORA_SULFUR:
+            return PINATUBO_FORCING * r
+        F_tambora = PINATUBO_FORCING * TAMBORA_SULFUR / PINATUBO_SULFUR
+        return F_tambora * (sulfur_tg / TAMBORA_SULFUR) ** (2.0 / 3.0)
+    raise ValueError(f"estimate must be 'low' or 'high', got {estimate!r}")
